@@ -2,7 +2,8 @@
 FROM --platform=linux/arm64 nvcr.io/nvidia/l4t-jetpack:r36.4.0
 
 # Add QEMU static binary to enable ARM emulation
-COPY qemu/qemu-aarch64-static /usr/bin/
+COPY qemu-aarch64-static /usr/bin/
+
 
 # Environment variables
 ENV DEBIAN_FRONTEND=noninteractive
