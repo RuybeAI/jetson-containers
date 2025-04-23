@@ -12,8 +12,18 @@
 ARG BASE_IMAGE
 FROM ${BASE_IMAGE}
 
-# set the CUDA architectures that PyTorch extensions get built for
-# set the torch hub model cache directory to mounted /data volume
+# ───────────────────────────────────────────────────────────────────────────────
+# Install prerequisites so that install.sh / build.sh can run
+# ───────────────────────────────────────────────────────────────────────────────
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+      python3-pip \
+      git && \
+    rm -rf /var/lib/apt/lists/*
+
+# ───────────────────────────────────────────────────────────────────────────────
+# Build arguments
+# ───────────────────────────────────────────────────────────────────────────────
 ARG TORCH_CUDA_ARCH_LIST \
     TORCH_VERSION \
     PYTORCH_BUILD_VERSION \
@@ -26,12 +36,16 @@ ARG TORCH_CUDA_ARCH_LIST \
     USE_XNNPACK=1 \
     USE_PYTORCH_QNNPACK=1 \
     FORCE_BUILD=off
-    
+
+# ───────────────────────────────────────────────────────────────────────────────
+# Environment variables
+# ───────────────────────────────────────────────────────────────────────────────
 ENV TORCH_CUDA_ARCH_LIST=${TORCH_CUDA_ARCH_LIST} \
     PIP_EXTRA_INDEX_URL=${PIP_EXTRA_INDEX_URL} \
     TORCH_HOME=/data/models/torch
 
+# ───────────────────────────────────────────────────────────────────────────────
+# Copy the upstream helper scripts and invoke them
+# ───────────────────────────────────────────────────────────────────────────────
 COPY install.sh build.sh /tmp/pytorch/
-
-# attempt to install from pip, and fall back to building it
 RUN /tmp/pytorch/install.sh || /tmp/pytorch/build.sh
