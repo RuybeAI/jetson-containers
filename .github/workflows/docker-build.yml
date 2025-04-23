@@ -32,10 +32,11 @@ jobs:
       - name: Build and Push PyTorch 2.3 Image
         uses: docker/build-push-action@v4
         with:
-          context: ./packages/pytorch
-          file: ./packages/pytorch/Dockerfile
+          context:./packages/pytorch
+          file:./packages/pytorch/Dockerfile
           platforms: linux/arm64
           build-args: |
+            BASE_IMAGE=ubuntu:22.04
             TORCH_CUDA_ARCH_LIST=8.7
           push: true
           tags: RuybeAI/pytorch:2.3-all
