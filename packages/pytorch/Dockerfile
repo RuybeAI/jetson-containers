@@ -1,4 +1,5 @@
-FROM --platform=linux/arm64 ruybeai/l4t-jetpack:r36.4.0
+FROM nvcr.io/nvidia/l4t-jetpack:r36.4.0
+COPY qemu-aarch64-static /usr/bin/
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV TORCH_CUDA_ARCH_LIST="8.7"
