@@ -24,3 +24,14 @@ jobs:
           platforms: linux/arm64
           push: true
           tags: RuybeAI/pytorch:2.3-all
+      - name: Build and Push PyTorch 2.3 Image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./packages/pytorch
+          file: ./packages/pytorch/Dockerfile
+          platforms: linux/arm64
+          push: true
+          tags: ruybeai/pytorch:2.3-all
+          build-args: |
+            BASE_IMAGE=nvcr.io/nvidia/l4t-pytorch:r36.4.3-pth2.3-py3
+
