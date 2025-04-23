@@ -1,51 +1,20 @@
-#---
-# name: pytorch
-# alias: torch
-# group: pytorch
-# config: config.py
-# depends: [cuda, cudnn, numpy, onnx]
-# test: [test.sh, test.py]
-# docs: |
-#  Containers for PyTorch with CUDA support.
-#  Note that the [`l4t-pytorch`](/packages/l4t/l4t-pytorch) containers also include PyTorch, `torchvision`, and `torchaudio`.
-#---
-ARG BASE_IMAGE
-FROM ${BASE_IMAGE}
+FROM nvcr.io/nvidia/l4t-jetpack:r36.4.0
+COPY qemu-aarch64-static /usr/bin/
 
-# ───────────────────────────────────────────────────────────────────────────────
-# Install prerequisites so that install.sh / build.sh can run
-# ───────────────────────────────────────────────────────────────────────────────
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-      python3-pip \
-      git && \
-    rm -rf /var/lib/apt/lists/*
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TORCH_CUDA_ARCH_LIST="8.7"
+ENV MAX_JOBS=2
 
-# ───────────────────────────────────────────────────────────────────────────────
-# Build arguments
-# ───────────────────────────────────────────────────────────────────────────────
-ARG TORCH_CUDA_ARCH_LIST \
-    TORCH_VERSION \
-    PYTORCH_BUILD_VERSION \
-    PIP_EXTRA_INDEX_URL \
-    USE_NCCL=1 \
-    USE_GLOO=1 \
-    USE_MPI=0 \
-    USE_FBGEMM=0 \
-    USE_NNPACK=1 \
-    USE_XNNPACK=1 \
-    USE_PYTORCH_QNNPACK=1 \
-    FORCE_BUILD=off
+RUN apt-get update && apt-get install -y \
+    python3-pip python3-dev \
+    git cmake ninja-build \
+    libopenblas-dev libomp-dev \
+    && apt-get clean
 
-# ───────────────────────────────────────────────────────────────────────────────
-# Environment variables
-# ───────────────────────────────────────────────────────────────────────────────
-ENV TORCH_CUDA_ARCH_LIST=${TORCH_CUDA_ARCH_LIST} \
-    PIP_EXTRA_INDEX_URL=${PIP_EXTRA_INDEX_URL} \
-    TORCH_HOME=/data/models/torch
+RUN git clone --branch v2.3.0 https://github.com/pytorch/pytorch.git /pytorch && \
+    cd /pytorch && \
+    git submodule update --init --recursive && \
+    pip3 install -r requirements.txt && \
+    python3 setup.py install
 
-# ───────────────────────────────────────────────────────────────────────────────
-# Copy the upstream helper scripts and invoke them
-# ───────────────────────────────────────────────────────────────────────────────
-COPY install.sh build.sh /tmp/pytorch/
-RUN /tmp/pytorch/install.sh || /tmp/pytorch/build.sh
+CMD ["python3"]
