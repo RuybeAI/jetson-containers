@@ -1,9 +1,11 @@
 name: disabled
 
-on: [workflow_dispatch]
+on:
+  workflow_dispatch:
 
 jobs:
   noop:
     runs-on: ubuntu-latest
     steps:
-      - run: echo "This workflow has been disabled and does nothing."
+      - name: No-op
+        run: echo "This workflow is disabled and does nothing."
