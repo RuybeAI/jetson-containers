@@ -40,3 +40,22 @@ jobs:
             TORCH_CUDA_ARCH_LIST=8.7
           push:   true
           tags:   RuybeAI/pytorch:2.3-all
+ # …existing steps…
+- name: Log in to NVIDIA NGC
+  run: echo "${{ secrets.NGC_API_KEY }}" \
+        | docker login nvcr.io \
+            --username "${{ secrets.NGC_USERNAME }}" \
+            --password-stdin
+
+- name: Build and Push PyTorch 2.3 Image
+  uses: docker/build-push-action@v4
+  with:
+    context: ./packages/pytorch
+    file:    ./packages/pytorch/Dockerfile
+    platforms: linux/arm64
+    build-args: |
+      BASE_IMAGE=nvcr.io/nvidia/l4t-pytorch:r36.4.3-pytorch-py3
+      TORCH_CUDA_ARCH_LIST=8.7
+    push:    true
+    tags:    RuybeAI/pytorch:2.3-all
+
