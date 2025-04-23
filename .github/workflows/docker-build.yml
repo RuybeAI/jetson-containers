@@ -28,34 +28,36 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      # 5) Build & push the ARM64 PyTorch image
-      - name: Build and Push PyTorch 2.3 Image
+      # 5) Log in to NVIDIA NGC so we can pull L4T base images
+      - name: Login to NVIDIA NGC
+        run: |
+          echo "${{ secrets.NGC_API_KEY }}" \
+            | docker login nvcr.io \
+                --username "${{ secrets.NGC_USERNAME }}" \
+                --password-stdin
+
+      # 6) Build & push the ARM64 PyTorch image on JetPack base
+      - name: Build and Push PyTorch on JetPack Base
         uses: docker/build-push-action@v4
         with:
           context: ./packages/pytorch
           file:    ./packages/pytorch/Dockerfile
-          platforms:     linux/arm64
+          platforms: linux/arm64
           build-args: |
             BASE_IMAGE=nvcr.io/nvidia/l4t-jetpack:r36.4.0
             TORCH_CUDA_ARCH_LIST=8.7
           push:   true
+          tags:   RuybeAI/pytorch:2.3-jp6.2-all
+
+      # 7) (Optional) Build & push again on the L4T-PyTorch base
+      - name: Build and Push PyTorch on L4T-PyTorch Base
+        uses: docker/build-push-action@v4
+        with:
+          context: ./packages/pytorch
+          file:    ./packages/pytorch/Dockerfile
+          platforms: linux/arm64
+          build-args: |
+            BASE_IMAGE=nvcr.io/nvidia/l4t-pytorch:r36.4.3-pytorch-py3
+            TORCH_CUDA_ARCH_LIST=8.7
+          push:   true
           tags:   RuybeAI/pytorch:2.3-all
- # …existing steps…
-- name: Log in to NVIDIA NGC
-  run: echo "${{ secrets.NGC_API_KEY }}" \
-        | docker login nvcr.io \
-            --username "${{ secrets.NGC_USERNAME }}" \
-            --password-stdin
-
-- name: Build and Push PyTorch 2.3 Image
-  uses: docker/build-push-action@v4
-  with:
-    context: ./packages/pytorch
-    file:    ./packages/pytorch/Dockerfile
-    platforms: linux/arm64
-    build-args: |
-      BASE_IMAGE=nvcr.io/nvidia/l4t-pytorch:r36.4.3-pytorch-py3
-      TORCH_CUDA_ARCH_LIST=8.7
-    push:    true
-    tags:    RuybeAI/pytorch:2.3-all
-
