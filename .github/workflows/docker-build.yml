@@ -5,38 +5,41 @@ on:
     branches: [ master ]
 
 jobs:
-  build:
+  build-jetson-pytorch:
     runs-on: ubuntu-latest
 
     steps:
-      # 1) Check out your repo
+      # 1) Check out your fork
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # 2) Enable QEMU emulation for ARM
+      # 2) Enable QEMU emulation for ARM64
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
+        with:
+          platforms: linux/arm64
 
-      # 3) Enable Docker Buildx
+      # 3) Enable Docker Buildx (multi-arch builds)
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
       # 4) Log in to Docker Hub
-      - name: Login to DockerHub
+      - name: Log in to Docker Hub
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      # 5) Build & push the ARM64 image, targeting compute 8.7
-      - name: Build and Push PyTorch 2.3 Image
+      # 5) Build & push the ARM64 PyTorch image
+      - name: Build and Push PyTorch 2.3 Image for Jetson
         uses: docker/build-push-action@v4
         with:
-          context: ./packages/pytorch
-          file: ./packages/pytorch/Dockerfile
-          platforms: linux/arm64
+          context: packages/pytorch
+          file:    packages/pytorch/Dockerfile
+          platforms:    linux/arm64
+          push:         true
           build-args: |
-            BASE_IMAGE=ubuntu:22.04
+            BASE_IMAGE=nvcr.io/nvidia/l4t-base:r36.4.0
             TORCH_CUDA_ARCH_LIST=8.7
-          push: true
+            CUDA_VERSION=12.2
           tags: RuybeAI/pytorch:2.3-all
