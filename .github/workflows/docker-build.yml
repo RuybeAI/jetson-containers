@@ -1,1 +1,9 @@
-Delete GitHub Actions workflow — using Docker Hub only
+name: disabled
+
+on: [workflow_dispatch]
+
+jobs:
+  noop:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "This workflow has been disabled and does nothing."
